@@ -27,33 +27,27 @@ export function Graph(props: { data: GraphNode[] }) {
   createEffect(() => {
     const { data } = props;
 
-    const svg = d3
+    const nodes = d3
       .select(container as any as string)
-      .attr('viewBox', [0, 0, window.innerWidth, window.innerHeight]);
-
-    svg
-      .selectAll('circle')
+      .attr('viewBox', [0, 0, window.innerWidth, window.innerHeight])
+      .selectAll('g')
       .data(data)
       .enter()
-      .append('circle')
-      .attr('fill', 'white')
-      .attr('cx', (d, i) => i * 80 + 50)
-      .attr('cy', 150)
-      .attr('r', radius)
-      // .on('click', clicked)
-      .call(drag);
+      .append('g')
+      .attr('transform', (d, i) => 'translate(' + (i * 80 + 50) + ',150)')
+      .on('click', clicked)
+      .call(drag as any);
 
-    svg
-      .selectAll('text')
-      .data(data)
-      .enter()
+    nodes.append('circle').attr('fill', 'white').attr('r', radius);
+
+    nodes
       .append('text')
+      .text((d) => d.name)
       .attr('text-anchor', 'middle')
       .attr('fill', 'black')
       .attr('font-size', 12)
-      .attr('x', (d, i) => i * 80 + 50)
-      .attr('y', 155)
-      .text((d) => d.name);
+      .attr('y', 4)
+      .style('font-size', '12px');
   });
 
   return container;
@@ -61,14 +55,14 @@ export function Graph(props: { data: GraphNode[] }) {
   // const canvas = ref<HTMLCanvasElement>();
   // return <canvas ref={canvas}></canvas>;
 
-  function clicked(this: SVGCircleElement, event: MouseEvent, d: GraphNode) {
+  function clicked(this: SVGGElement, event: MouseEvent, d: GraphNode) {
     if (event.defaultPrevented) return; // dragged
 
-    const self = d3.select(this);
+    const circle = d3.select(this).selectChild('circle');
 
-    self
+    circle
       .transition()
-      .attr('r', () => +self.attr('r') * 2)
+      .attr('r', () => +circle.attr('r') * 2)
       .transition()
       .attr('r', radius);
   }
@@ -82,17 +76,18 @@ generate D3.js code to render nodes contai
 
 function createDrag() {
   function dragstarted(this: Element, event: DragEvent, d: any) {
-    d3.select(this).raise().attr('stroke', 'black');
+    d3.select(this).raise().selectChild('circle').attr('stroke', 'black');
   }
 
   function dragged(this: Element, event: DragEvent, d: any) {
-    d3.select(this)
-      .attr('cx', (d.x = event.x))
-      .attr('cy', (d.y = event.y));
+    d3.select(this).attr(
+      'transform',
+      () => `translate(${(d.x = event.x)},${(d.y = event.y)})`
+    );
   }
 
   function dragended(this: Element, event: DragEvent, d: any) {
-    d3.select(this).attr('stroke', null);
+    d3.select(this).selectChild('circle').attr('stroke', null);
   }
 
   const drag = d3

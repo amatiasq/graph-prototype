@@ -1,49 +1,76 @@
+type GraphNodeId = number & 'snowflake GraphNodeId';
+
 export interface GraphNode {
-  id: string;
+  id: GraphNodeId;
   kind: 'Person' | 'Product';
   name: string;
   properties: Record<string, any>;
+  links: Record<string, GraphNodeId | GraphNodeId[]>;
 }
 
-export const data = [
-  {
-    id: '1',
-    kind: 'Person',
-    name: 'Alice',
-    properties: {
-      age: 30,
+export const data = read() ?? defaultData();
+
+function read() {
+  const stored = localStorage.getItem('graph-data');
+  return stored ? (JSON.parse(stored) as GraphNode[]) : null;
+}
+
+export function write(data: GraphNode[]) {
+  localStorage.setItem('graph-data', JSON.stringify(data));
+}
+
+function defaultData() {
+  const yo = 1 as GraphNodeId;
+  const mica = 2 as GraphNodeId;
+  const facu = 3 as GraphNodeId;
+  const cami = 4 as GraphNodeId;
+
+  return [
+    {
+      id: yo,
+      kind: 'Person',
+      name: 'YO',
+      properties: {
+        age: 33,
+      },
+      links: {
+        partner: mica,
+      },
     },
-  },
-  {
-    id: '2',
-    kind: 'Person',
-    name: 'Bob',
-    properties: {
-      age: 25,
+    {
+      id: mica,
+      kind: 'Person',
+      name: 'Mica',
+      properties: {
+        age: 31,
+      },
+      links: {
+        partner: yo,
+      },
     },
-  },
-  {
-    id: '3',
-    kind: 'Person',
-    name: 'Charlie',
-    properties: {
-      age: 35,
+    {
+      id: facu,
+      kind: 'Person',
+      name: 'Facu',
+      properties: {
+        age: 5,
+      },
+      links: {
+        father: yo,
+        mother: mica,
+      },
     },
-  },
-  {
-    id: '4',
-    kind: 'Product',
-    name: 'iPhone',
-    properties: {
-      price: 999,
+    {
+      id: cami,
+      kind: 'Person',
+      name: 'Cami',
+      properties: {
+        age: 2,
+      },
+      links: {
+        father: yo,
+        mother: mica,
+      },
     },
-  },
-  {
-    id: '5',
-    kind: 'Product',
-    name: 'iPad',
-    properties: {
-      price: 799,
-    },
-  },
-] satisfies GraphNode[];
+  ] as GraphNode[];
+}
